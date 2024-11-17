@@ -162,6 +162,10 @@ with tabs[1]:
     if data_kemandirian_rumah_tangga_file is not None:
         data_kemandirian_rumah_tangga = load_data(data_kemandirian_rumah_tangga_file)
         if data_kemandirian_rumah_tangga is not None:
+            # Membersihkan kolom 'Rata-rata'
+            if 'Rata-rata' in data_kemandirian_rumah_tangga.columns:
+                data_kemandirian_rumah_tangga['Rata-rata'] = data_kemandirian_rumah_tangga['Rata-rata'].astype(str).str.replace('%', '').str.strip()
+                data_kemandirian_rumah_tangga['Rata-rata'] = pd.to_numeric(data_kemandirian_rumah_tangga['Rata-rata'], errors='coerce')
             with st.expander("🔍 Lihat Data Kemandirian Pangan Per Rumah Tangga"):
                 st.write(data_kemandirian_rumah_tangga)
             
@@ -191,6 +195,10 @@ with tabs[2]:
     if data_kemandirian_dusun_file is not None:
         data_kemandirian_dusun = load_data(data_kemandirian_dusun_file)
         if data_kemandirian_dusun is not None:
+            # Membersihkan kolom 'Rata-rata'
+            if 'Rata-rata' in data_kemandirian_dusun.columns:
+                data_kemandirian_dusun['Rata-rata'] = data_kemandirian_dusun['Rata-rata'].astype(str).str.replace('%', '').str.strip()
+                data_kemandirian_dusun['Rata-rata'] = pd.to_numeric(data_kemandirian_dusun['Rata-rata'], errors='coerce')
             with st.expander("🔍 Lihat Data Kemandirian Pangan Per Dusun"):
                 st.write(data_kemandirian_dusun)
             
