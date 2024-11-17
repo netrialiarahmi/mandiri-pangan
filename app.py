@@ -89,67 +89,9 @@ def extract_lat_lon(coord):
         return pd.Series({'Latitude': None, 'Longitude': None})
 
 # Membuat Tab
-# Membuat Tab
-tabs = st.tabs(['📊 Summary', '🏠 Data Rumah Tangga', '🍛 Kemandirian Pangan Rumah Tangga', '🌾 Kemandirian Pangan Dusun'])
+tabs = st.tabs(['🏠 Data Rumah Tangga', '🍛 Kemandirian Pangan Rumah Tangga', '🌾 Kemandirian Pangan Dusun'])
 
 with tabs[0]:
-    st.header('📊 Summary Dashboard')
-    st.markdown('''
-    Halaman ini menampilkan ringkasan dan analisis dari seluruh data yang telah diunggah.
-    Analisis mencakup produk unggulan, tingkat kemandirian pangan, dan rekomendasi pengembangan.
-    ''')
-    
-    # Mengambil data dari session state jika ada
-    data_rt = None
-    data_kemandirian_rt = None
-    data_kemandirian_dusun = None
-    
-    if 'data_rumah_tangga' in st.session_state:
-        data_rt = st.session_state['data_rumah_tangga']
-    if 'data_kemandirian_rt' in st.session_state:
-        data_kemandirian_rt = st.session_state['data_kemandirian_rt']
-    if 'data_kemandirian_dusun' in st.session_state:
-        data_kemandirian_dusun = st.session_state['data_kemandirian_dusun']
-    
-    if data_rt is not None or data_kemandirian_rt is not None or data_kemandirian_dusun is not None:
-        st.subheader('🤖 Analisis AI')
-        with st.spinner('Menganalisis data...'):
-            analysis = analyze_data_with_openai(data_rt, data_kemandirian_rt, data_kemandirian_dusun)
-            if analysis:
-                st.markdown(analysis)
-                
-        # Visualisasi Ringkasan
-        if data_rt is not None:
-            st.subheader('📈 Ringkasan Produksi dan Konsumsi')
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                # Top 5 produksi
-                produksi_cols = [col for col in data_rt.columns if not col.endswith('.1')]
-                produksi_summary = data_rt[produksi_cols].sum().sort_values(ascending=False).head()
-                fig = px.bar(
-                    x=produksi_summary.index,
-                    y=produksi_summary.values,
-                    title='Top 5 Produksi',
-                    color_discrete_sequence=['#1ABC9C']
-                )
-                st.plotly_chart(fig, use_container_width=True)
-            
-            with col2:
-                # Top 5 konsumsi
-                konsumsi_cols = [col for col in data_rt.columns if col.endswith('.1')]
-                konsumsi_summary = data_rt[konsumsi_cols].sum().sort_values(ascending=False).head()
-                fig = px.bar(
-                    x=konsumsi_summary.index,
-                    y=konsumsi_summary.values,
-                    title='Top 5 Konsumsi',
-                    color_discrete_sequence=['#3498DB']
-                )
-                st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.info('Silakan unggah data pada tab-tab yang tersedia untuk melihat ringkasan dan analisis.')
-
-with tabs[1]:
     st.header('🏠 Data Rumah Tangga')
     # Upload dan tampilkan data_rumah_tangga
     data_rumah_tangga_file = st.file_uploader('Upload Data Rumah Tangga (CSV atau Excel)', type=['csv', 'xlsx'], key='data_rumah_tangga')
@@ -508,7 +450,7 @@ with tabs[1]:
     else:
         st.info('Silakan upload file **Data Rumah Tangga** pada tab ini.')
 
-with tabs[2]:
+with tabs[1]:
     st.header('🍛 Data Kemandirian Pangan Per Rumah Tangga')
     data_kemandirian_rumah_tangga_file = st.file_uploader('Upload Data Kemandirian Pangan Per Rumah Tangga (CSV atau Excel)', type=['csv', 'xlsx'], key='data_kemandirian_rumah_tangga')
     if data_kemandirian_rumah_tangga_file is not None:
@@ -541,7 +483,7 @@ with tabs[2]:
     else:
         st.info('Silakan upload file **Data Kemandirian Pangan Per Rumah Tangga** pada tab ini.')
 
-with tabs[3]:
+with tabs[2]:
     st.header('🌾 Data Kemandirian Pangan Per Dusun')
     data_kemandirian_dusun_file = st.file_uploader('Upload Data Kemandirian Pangan Per Dusun (CSV atau Excel)', type=['csv', 'xlsx'], key='data_kemandirian_dusun')
     if data_kemandirian_dusun_file is not None:
@@ -570,20 +512,7 @@ with tabs[3]:
             st.error('Gagal memuat data. Pastikan format file benar dan sesuai.')
     else:
         st.info('Silakan upload file **Data Kemandirian Pangan Per Dusun** pada tab ini.')
-if data_rumah_tangga_file is not None:
-    data_rumah_tangga = load_data(data_rumah_tangga_file)
-    if data_rumah_tangga is not None:
-        st.session_state['data_rumah_tangga'] = data_rumah_tangga
 
-if data_kemandirian_rumah_tangga_file is not None:
-    data_kemandirian_rumah_tangga = load_data(data_kemandirian_rumah_tangga_file)
-    if data_kemandirian_rumah_tangga is not None:
-        st.session_state['data_kemandirian_rt'] = data_kemandirian_rumah_tangga
-
-if data_kemandirian_dusun_file is not None:
-    data_kemandirian_dusun = load_data(data_kemandirian_dusun_file)
-    if data_kemandirian_dusun is not None:
-        st.session_state['data_kemandirian_dusun'] = data_kemandirian_dusun
 # Footer
 st.markdown(
     """
