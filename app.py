@@ -1,118 +1,74 @@
 import streamlit as st
-import pandas as pd
 
 # Konfigurasi Halaman
-st.set_page_config(page_title="Dashboard Data Pangan", page_icon="🍚", layout="wide")
-
-# Inisialisasi Session State untuk Menyimpan Data
-if "rumah_tangga_total" not in st.session_state:
-    st.session_state["rumah_tangga_total"] = "Belum ada data"
-
-if "kemandirian_tinggi" not in st.session_state:
-    st.session_state["kemandirian_tinggi"] = "Belum ada data"
-
-if "data_terbaru" not in st.session_state:
-    st.session_state["data_terbaru"] = "Belum ada data"
-
-# Sidebar Navigasi
-st.sidebar.title("📂 Menu Navigasi")
-menu = st.sidebar.radio(
-    "Pilih Halaman:",
-    ["🏠 Dashboard Utama", "📊 Data Rumah Tangga", "🍛 Kemandirian Pangan RT", "🌾 Kemandirian Pangan Dusun"],
+st.set_page_config(
+    page_title="Dashboard Data Pangan",
+    page_icon="🍚",
+    layout="wide",
 )
 
-# Halaman Dashboard Utama
-if menu == "🏠 Dashboard Utama":
-    st.title("📊 Dashboard Data Pangan")
-    st.markdown(
-        """
-        Selamat datang di **Dashboard Data Pangan**!  
-        Dashboard ini menampilkan visualisasi interaktif dari:
-        - **Data rumah tangga**
-        - **Data kemandirian pangan per rumah tangga**
-        - **Data kemandirian pangan per dusun**
-        """
-    )
+# CSS Kustom untuk styling
+st.markdown(
+    """
+    <style>
+    /* CSS Kustom */
+    @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
 
-    # Menampilkan Metrics Cards
-    st.markdown("### 📈 Statistik Utama")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("#### 🏠 Total Rumah Tangga")
-        st.metric(label="", value=st.session_state["rumah_tangga_total"])
-    with col2:
-        st.markdown("#### 🍛 Kemandirian Tinggi")
-        st.metric(label="", value=st.session_state["kemandirian_tinggi"])
-    with col3:
-        st.markdown("#### 🌾 Data Terbaru")
-        st.metric(label="", value=st.session_state["data_terbaru"])
+    html, body, [class*="css"]  {
+        font-family: 'Roboto', sans-serif;
+    }
 
-    st.info("Silakan pilih halaman di **sidebar** untuk memperbarui data.")
+    .main .block-container {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
 
-# Halaman Data Rumah Tangga
-elif menu == "📊 Data Rumah Tangga":
-    st.title("📊 Data Rumah Tangga")
-    st.markdown(
-        """
-        Unggah data rumah tangga untuk melihat jumlah total keluarga yang terdata.
-        """
-    )
+    h1, h2, h3 {
+        color: #2E4053;
+        font-weight: 700;
+    }
 
-    uploaded_file = st.file_uploader("Unggah file data rumah tangga (CSV):", type=["csv"])
-    if uploaded_file:
-        data = pd.read_csv(uploaded_file)
-        st.write(data)
+    .stButton>button {
+        background-color: #2E86C1;
+        color: white;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        border: none;
+    }
 
-        # Perbarui jumlah rumah tangga di session state
-        st.session_state["rumah_tangga_total"] = len(data)
-        st.success(f"Total rumah tangga berhasil diperbarui: {len(data)} keluarga.")
-    else:
-        st.info("Silakan unggah file data rumah tangga untuk memulai.")
+    .stButton>button:hover {
+        background-color: #1A5276;
+        color: white;
+    }
 
-# Halaman Kemandirian Pangan RT
-elif menu == "🍛 Kemandirian Pangan RT":
-    st.title("🍛 Kemandirian Pangan Rumah Tangga")
-    st.markdown(
-        """
-        Unggah data kemandirian pangan rumah tangga untuk menghitung rata-rata kemandirian pangan.
-        """
-    )
+    .css-1offfwp.e1fqkh3o3 {
+        background-color: #EBF5FB;
+    }
 
-    uploaded_file = st.file_uploader("Unggah file data kemandirian pangan RT (CSV):", type=["csv"])
-    if uploaded_file:
-        data = pd.read_csv(uploaded_file)
-        st.write(data)
+    .stTabs [data-baseweb="tab"] {
+        font-size: 1rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-        # Perbarui persentase kemandirian tinggi
-        if "Kemandirian (%)" in data.columns:
-            rata_kemandirian = data["Kemandirian (%)"].mean()
-            st.session_state["kemandirian_tinggi"] = f"{rata_kemandirian:.2f}%"
-            st.success(f"Kemandirian tinggi diperbarui: {rata_kemandirian:.2f}%.")
-        else:
-            st.warning("Kolom 'Kemandirian (%)' tidak ditemukan dalam data.")
-    else:
-        st.info("Silakan unggah file data kemandirian pangan rumah tangga untuk memulai.")
+# Judul dan Deskripsi
+st.title('📊 Dashboard Data Pangan')
+st.markdown('''
+Selamat datang di **Dashboard Data Pangan**!
+Dashboard ini menampilkan visualisasi interaktif dari **data rumah tangga**, **data kemandirian pangan per rumah tangga**, dan **data kemandirian pangan per dusun**.
 
-# Halaman Kemandirian Pangan Dusun
-elif menu == "🌾 Kemandirian Pangan Dusun":
-    st.title("🌾 Kemandirian Pangan Dusun")
-    st.markdown(
-        """
-        Unggah data kemandirian pangan per dusun untuk melihat tahun data terbaru.
-        """
-    )
+Silakan pilih halaman yang ingin Anda lihat dari menu di sebelah kiri.
+''')
 
-    uploaded_file = st.file_uploader("Unggah file data kemandirian pangan dusun (CSV):", type=["csv"])
-    if uploaded_file:
-        data = pd.read_csv(uploaded_file)
-        st.write(data)
-
-        # Perbarui data terbaru di session state
-        if "Tahun" in data.columns:
-            tahun_terbaru = data["Tahun"].max()
-            st.session_state["data_terbaru"] = str(tahun_terbaru)
-            st.success(f"Data terbaru berhasil diperbarui: {tahun_terbaru}.")
-        else:
-            st.warning("Kolom 'Tahun' tidak ditemukan dalam data.")
-    else:
-        st.info("Silakan unggah file data kemandirian pangan per dusun untuk memulai.")
+# Footer
+st.markdown(
+    """
+    <hr>
+    <div style='text-align: center;'>
+        <small>© 2024 Dashboard Data Pangan. All rights reserved.</small>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
