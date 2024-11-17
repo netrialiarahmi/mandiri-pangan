@@ -199,7 +199,7 @@ with tabs[0]:
                         st.warning(f'Tidak ada data untuk {category}.')
 
             # 4. Analisis Konsumsi Pangan
-            st.subheader('4️⃣ Analisis Konsumsi Pangan')
+            
             konsumsi_cols = {
                 'Konsumsi Karbohidrat': ['Beras Lokal (Sawah/Ladang)', 'Singkong.1', 'Jagung Lokal.1', 'Jagung Hibrida.1', 'Umbi-umbian lain.1', 'Sorgum.1', 'Jewawut/Weteng.1'],
                 'Konsumsi Pertanian': ['Nama Tanaman', 'Jenis Pangan', 'Varietas', 'Luas Lahan', 'Produktivitas'],
@@ -211,6 +211,7 @@ with tabs[0]:
                 'Bahan Bakar': ['Minyak Tanah', 'Gas', 'Biaya Listrik', 'BBM']
             }
             with col2:
+                st.subheader('4️⃣ Analisis Konsumsi Pangan')
                 for category, cols in konsumsi_cols.items():
                     available_cols = [col for col in cols if col in filtered_data.columns]
                     if available_cols:
