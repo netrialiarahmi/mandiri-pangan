@@ -285,9 +285,9 @@ with tabs[0]:
                 
                 # Preprocessing Data Limbah
                 limbah_data = limbah_data.fillna('')  # Isi nilai kosong dengan string kosong
-                limbah_data['Sumber Limbah'] = limbah_data['Sumber Limbah'].str.capitalize()
-                limbah_data['Pengolahan'] = limbah_data['Pengolahan'].str.capitalize().replace({'Tidak ada': 'Tidak diolah'})
-                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].str.capitalize().replace(
+                limbah_data['Sumber Limbah'] = limbah_data['Sumber Limbah'].astype(str).str.strip().str.capitalize()
+                limbah_data['Pengolahan'] = limbah_data['Pengolahan'].astype(str).str.strip().str.capitalize().replace({'Tidak ada': 'Tidak diolah'})
+                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].astype(str).str.strip().str.capitalize().replace(
                     {'': 'Dibakar', 'Di buang': 'Dibakar', '0': 'Dibakar', 'Nan': 'Dibakar'}
                 )
             
@@ -353,6 +353,7 @@ with tabs[0]:
                 st.dataframe(limbah_data)
             else:
                 st.warning('Tidak ada data untuk Limbah.')
+
 
 
             # 9. Analisis Pendidikan
