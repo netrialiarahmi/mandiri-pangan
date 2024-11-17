@@ -1,134 +1,284 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from datetime import datetime
 
-# Konfigurasi Halaman
+# Page Configuration
 st.set_page_config(
-    page_title="Dashboard Data Pangan",
-    page_icon="🍚",
+    page_title="Dashboard Ketahanan Pangan",
+    page_icon="🌾",
     layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# CSS Kustom untuk styling
-st.markdown(
-    """
+# Custom Theme and Styling
+st.markdown("""
     <style>
-    /* CSS Kustom */
-    @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
-
-    html, body, [class*="css"]  {
-        font-family: 'Roboto', sans-serif;
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+    
+    /* Main Containers */
+    .main {
+        background-color: #f8f9fa;
+        font-family: 'Poppins', sans-serif;
     }
-
-    .main .block-container {
-        padding-top: 1rem;
-        padding-bottom: 1rem;
+    
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
     }
-
-    h1, h2, h3 {
-        color: #2E4053;
+    
+    /* Headers */
+    h1 {
+        color: #1e3d59;
         font-weight: 700;
+        font-size: 2.5rem !important;
+        margin-bottom: 1.5rem !important;
+        padding-bottom: 1rem;
+        border-bottom: 3px solid #ffc13b;
     }
-
-    .stButton>button {
-        background-color: #2E86C1;
-        color: white;
-        border-radius: 8px;
+    
+    h2 {
+        color: #1e3d59;
+        font-weight: 600;
+        font-size: 1.8rem !important;
+        margin-top: 2rem !important;
+    }
+    
+    h3 {
+        color: #1e3d59;
+        font-weight: 500;
+        font-size: 1.5rem !important;
+    }
+    
+    /* Cards */
+    .css-1r6slb0 {
+        background-color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+    }
+    
+    /* Metrics */
+    .css-1r6slb0.e1tzin5v2 {
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Buttons */
+    .stButton > button {
+        background-color: #ffc13b;
+        color: #1e3d59;
+        font-weight: 500;
         padding: 0.5rem 1rem;
+        border-radius: 8px;
         border: none;
+        transition: all 0.3s ease;
     }
-
-    .stButton>button:hover {
-        background-color: #1A5276;
+    
+    .stButton > button:hover {
+        background-color: #ff9a3b;
         color: white;
+        transform: translateY(-2px);
     }
-
-    .css-1offfwp.e1fqkh3o3 {
-        background-color: #EBF5FB;
+    
+    /* Sidebar */
+    .css-1d391kg {
+        background-color: #1e3d59;
     }
-
+    
+    .css-1d391kg .sidebar-content {
+        background-color: #1e3d59;
+    }
+    
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 1rem;
+        background-color: transparent;
+    }
+    
     .stTabs [data-baseweb="tab"] {
-        font-size: 1rem;
+        background-color: #f1f3f4;
+        border-radius: 4px;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background-color: #ffc13b !important;
+        color: #1e3d59 !important;
+    }
+    
+    /* Tables */
+    .dataframe {
+        border: none !important;
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+        margin: 1rem 0;
+    }
+    
+    .dataframe th {
+        background-color: #1e3d59;
+        color: white;
+        font-weight: 500;
+        padding: 0.75rem 1rem;
+        text-align: left;
+    }
+    
+    .dataframe td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .dataframe tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+    
+    /* Charts */
+    .plot-container {
+        border-radius: 10px;
+        background-color: white;
+        padding: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Expander */
+    .streamlit-expander {
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+    
+    /* File Uploader */
+    .stFileUploader {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        border: 2px dashed #1e3d59;
+    }
+    
+    /* Custom Card Container */
+    .custom-card {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+    }
+    
+    /* Progress Bars */
+    .stProgress > div > div {
+        background-color: #ffc13b;
+    }
+    
+    /* Alerts */
+    .element-container .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+    
+    .element-container .alert-info {
+        background-color: #e3f2fd;
+        border: 1px solid #90caf9;
+        color: #1976d2;
+    }
+    
+    .element-container .alert-success {
+        background-color: #e8f5e9;
+        border: 1px solid #a5d6a7;
+        color: #2e7d32;
+    }
+    
+    .element-container .alert-warning {
+        background-color: #fff3e0;
+        border: 1px solid #ffcc80;
+        color: #ef6c00;
+    }
+    
+    .element-container .alert-error {
+        background-color: #fbe9e7;
+        border: 1px solid #ffab91;
+        color: #d84315;
     }
     </style>
-    """,
-    unsafe_allow_html=True
-)
+""", unsafe_allow_html=True)
 
-# Judul dan Deskripsi
-st.title('📊 Dashboard Data Pangan')
-st.markdown('''
-Selamat datang di **Dashboard Data Pangan**! Dashboard ini menampilkan visualisasi interaktif dari **data rumah tangga**, **data kemandirian pangan per rumah tangga**, dan **data kemandirian pangan per dusun**.
+# Sidebar
+with st.sidebar:
+    st.image("https://via.placeholder.com/150x150.png?text=Logo", width=150)
+    st.title("Menu Navigasi")
+    menu = st.radio(
+        "Pilih Data:",
+        ["🏠 Data Rumah Tangga", "🍛 Kemandirian Pangan RT", "🌾 Kemandirian Pangan Dusun"]
+    )
 
-Silakan unggah data Anda pada tab yang sesuai di bawah ini.
-''')
-
-# Fungsi untuk memuat data dengan caching
+# Functions
 @st.cache_data
 def load_data(file):
     try:
         if file.type == 'text/csv':
-            df = pd.read_csv(file, encoding='utf-8', header=1)  # Header pada baris pertama
+            df = pd.read_csv(file, encoding='utf-8', header=1)
         else:
-            df = pd.read_excel(file, header=1)  # Header pada baris pertama
+            df = pd.read_excel(file, header=1)
+        return df
     except Exception as e:
-        st.error(f"Error loading data: {e}")
+        st.error(f"Error: {e}")
         return None
-    return df
 
-# Fungsi untuk mengekstrak Latitude dan Longitude dari format 'Longitude, Latitude, Altitude, Accuracy'
-def extract_lat_lon(coord):
-    try:
-        parts = coord.split(',')
-        lon = float(parts[0].strip())
-        lat = float(parts[1].strip())
-        # Jika diperlukan, Anda dapat menangani Altitude dan Accuracy di sini
-        return pd.Series({'Latitude': lat, 'Longitude': lon})
-    except:
-        return pd.Series({'Latitude': None, 'Longitude': None})
+def create_metric_card(title, value, delta=None, help_text=None):
+    with st.container():
+        st.markdown(f"""
+            <div class="custom-card">
+                <h4 style="color: #666; margin-bottom: 0.5rem;">{title}</h4>
+                <h2 style="color: #1e3d59; margin: 0;">{value}</h2>
+                {f'<p style="color: {"green" if delta > 0 else "red"}; margin: 0;">{"↑" if delta > 0 else "↓"} {abs(delta)}%</p>' if delta else ''}
+                {f'<small style="color: #666;">{help_text}</small>' if help_text else ''}
+            </div>
+        """, unsafe_allow_html=True)
 
-# Membuat Tab
-tabs = st.tabs(['🏠 Data Rumah Tangga', '🍛 Kemandirian Pangan Rumah Tangga', '🌾 Kemandirian Pangan Dusun'])
+# Main Content
+st.title("Dashboard Ketahanan Pangan 🌾")
+st.markdown("Selamat datang di Dashboard Ketahanan Pangan. Platform ini menyajikan visualisasi komprehensif tentang data pangan di wilayah Anda.")
 
-with tabs[0]:
-    st.header('🏠 Data Rumah Tangga')
-    # Upload dan tampilkan data_rumah_tangga
-    data_rumah_tangga_file = st.file_uploader('Upload Data Rumah Tangga (CSV atau Excel)', type=['csv', 'xlsx'], key='data_rumah_tangga')
-    if data_rumah_tangga_file is not None:
+# Continue with the rest of your existing code, but with enhanced styling and organization
+if menu == "🏠 Data Rumah Tangga":
+    st.header("Data Rumah Tangga")
+    data_rumah_tangga_file = st.file_uploader(
+        'Upload Data Rumah Tangga (CSV atau Excel)',
+        type=['csv', 'xlsx'],
+        key='data_rumah_tangga'
+    )
+    
+    if data_rumah_tangga_file:
         data_rumah_tangga = load_data(data_rumah_tangga_file)
         if data_rumah_tangga is not None:
-            with st.expander("🔍 Lihat Data Rumah Tangga"):
-                st.write(data_rumah_tangga)
-            
-            # Opsi Filter
-            st.subheader('📍 Filter Data')
-            filter_option = st.selectbox('Pilih Opsi Filter', ['Semua Data', 'Dusun', 'Desa/Kelurahan', 'Kecamatan'])
-            if filter_option == 'Dusun':
-                if 'Dusun' in data_rumah_tangga.columns:
-                    dusun_list = data_rumah_tangga['Dusun'].dropna().unique()
-                    selected_dusun = st.multiselect('Pilih Dusun', options=dusun_list, default=dusun_list)
-                    filtered_data = data_rumah_tangga[data_rumah_tangga['Dusun'].isin(selected_dusun)]
-                else:
-                    st.warning('Kolom "Dusun" tidak ditemukan dalam data.')
-                    filtered_data = data_rumah_tangga
-            elif filter_option == 'Desa/Kelurahan':
-                if 'Desa/Kelurahan' in data_rumah_tangga.columns:
-                    desa_list = data_rumah_tangga['Desa/Kelurahan'].dropna().unique()
-                    selected_desa = st.multiselect('Pilih Desa/Kelurahan', options=desa_list, default=desa_list)
-                    filtered_data = data_rumah_tangga[data_rumah_tangga['Desa/Kelurahan'].isin(selected_desa)]
-                else:
-                    st.warning('Kolom "Desa/Kelurahan" tidak ditemukan dalam data.')
-                    filtered_data = data_rumah_tangga
-            elif filter_option == 'Kecamatan':
-                if 'Kecamatan' in data_rumah_tangga.columns:
-                    kecamatan_list = data_rumah_tangga['Kecamatan'].dropna().unique()
-                    selected_kecamatan = st.multiselect('Pilih Kecamatan', options=kecamatan_list, default=kecamatan_list)
-                    filtered_data = data_rumah_tangga[data_rumah_tangga['Kecamatan'].isin(selected_kecamatan)]
-                else:
-                    st.warning('Kolom "Kecamatan" tidak ditemukan dalam data.')
-                    filtered_data = data_rumah_tangga
-            else:
-                filtered_data = data_rumah_tangga
+            # Create summary metrics
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                create_metric_card(
+                    "Total Rumah Tangga",
+                    len(data_rumah_tangga),
+                    help_text="Jumlah total rumah tangga yang terdata"
+                )
+            with col2:
+                avg_income = data_rumah_tangga['Pendapatan Bulanan (Rp.)'].mean()
+                create_metric_card(
+                    "Rata-rata Pendapatan",
+                    f"Rp {avg_income:,.0f}",
+                    help_text="Rata-rata pendapatan bulanan"
+                )
+            with col3:
+                avg_family = data_rumah_tangga['Jumlah Anggota Keluarga (jiwa)'].mean()
+                create_metric_card(
+                    "Rata-rata Anggota Keluarga",
+                    f"{avg_family:.1f}",
+                    help_text="Rata-rata jumlah anggota keluarga"
+                )
 
             # 1. Visualisasi Data Rumah Tangga
             st.subheader('1️⃣ Visualisasi Data Rumah Tangga')
