@@ -68,9 +68,9 @@ Silakan unggah data Anda pada tab yang sesuai di bawah ini.
 def load_data(file):
     try:
         if file.type == 'text/csv':
-            df = pd.read_csv(file, encoding='utf-8', header=0)  # Header pada baris pertama
+            df = pd.read_csv(file, encoding='utf-8', header=1)  # Header pada baris pertama
         else:
-            df = pd.read_excel(file, header=0)  # Header pada baris pertama
+            df = pd.read_excel(file, header=1)  # Header pada baris pertama
     except Exception as e:
         st.error(f"Error loading data: {e}")
         return None
