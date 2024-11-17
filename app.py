@@ -255,11 +255,12 @@ with tabs[0]:
                 if jenis_ternak_index < kuda_index:
                     # Ambil kolom dari "Jenis Ternak" hingga "Kuda" secara inklusif
                     ternak_cols = filtered_data.columns[jenis_ternak_index:kuda_index+1]
+                    ternak_cols = list(ternak_cols)  # Pastikan ternak_cols adalah list
                 else:
                     st.warning('Kolom "Jenis Ternak" harus berada sebelum kolom "Kuda" dalam dataset.')
                     ternak_cols = []
             
-                if ternak_cols:
+                if len(ternak_cols) > 0:
                     # Filter data yang hanya relevan untuk peternakan
                     peternakan_data = filtered_data[ternak_cols].copy()
             
@@ -269,7 +270,10 @@ with tabs[0]:
             
                     # Hitung total jumlah ternak berdasarkan jenis
                     total_peternakan = peternakan_data[ternak_cols[1:]].sum(axis=0)
-                    peternakan_summary = pd.DataFrame({'Jenis Ternak': total_peternakan.index, 'Jumlah': total_peternakan.values})
+                    peternakan_summary = pd.DataFrame({
+                        'Jenis Ternak': total_peternakan.index,
+                        'Jumlah': total_peternakan.values
+                    })
             
                     # Visualisasi data total peternakan
                     fig_peternakan = px.bar(
@@ -286,6 +290,7 @@ with tabs[0]:
                     st.warning('Kolom ternak tidak ditemukan atau urutan kolom tidak sesuai.')
             else:
                 st.warning('Kolom "Jenis Ternak" atau "Kuda" tidak ditemukan dalam dataset.')
+
 
 
             # 7. Analisis Perikanan
