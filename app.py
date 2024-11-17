@@ -63,63 +63,6 @@ Dashboard ini menampilkan visualisasi interaktif dari **data rumah tangga**, **d
 
 Silakan unggah data Anda pada tab yang sesuai di bawah ini.
 ''')
-# Fungsi untuk menganalisis data dengan OpenAI
-def analyze_data_with_openai(data_rumah_tangga=None, data_kemandirian_rt=None, data_kemandirian_dusun=None):
-    try:
-        if 'OPENAI_API_KEY' not in st.secrets:
-            st.error('Please set your OpenAI API key in the secrets.')
-            return None
-            
-        llm = OpenAI(api_key=st.secrets['OPENAI_API_KEY'], temperature=0.7)
-        
-        # Create summary data
-        summary_data = {
-            "produksi": {},
-            "konsumsi": {},
-            "kemandirian": {}
-        }
-        
-        if data_rumah_tangga is not None:
-            # Extract production data
-            produksi_cols = [col for col in data_rumah_tangga.columns if not col.endswith('.1')]
-            produksi_data = data_rumah_tangga[produksi_cols].sum().to_dict()
-            summary_data["produksi"] = produksi_data
-            
-            # Extract consumption data
-            konsumsi_cols = [col for col in data_rumah_tangga.columns if col.endswith('.1')]
-            konsumsi_data = data_rumah_tangga[konsumsi_cols].sum().to_dict()
-            summary_data["konsumsi"] = konsumsi_data
-        
-        if data_kemandirian_dusun is not None:
-            summary_data["kemandirian"] = data_kemandirian_dusun.to_dict()
-        
-        # Create prompt template
-        prompt_template = PromptTemplate(
-            input_variables=["data"],
-            template="""
-            Analisis data berikut dan berikan ringkasan mengenai:
-            1. Produk unggulan pangan dari daerah tersebut
-            2. Tingkat kemandirian pangan secara umum
-            3. Rekomendasi untuk peningkatan ketahanan pangan
-            4. Potensi pengembangan ekonomi berbasis pangan
-            
-            Data:
-            {data}
-            
-            Berikan analisis dalam format yang terstruktur dan mudah dibaca.
-            """
-        )
-        
-        # Create chain
-        chain = LLMChain(llm=llm, prompt=prompt_template)
-        
-        # Run analysis
-        response = chain.run(data=str(summary_data))
-        return response
-        
-    except Exception as e:
-        st.error(f"Error in OpenAI analysis: {str(e)}")
-        return None
 
 # Fungsi untuk memuat data dengan caching
 @st.cache_data
