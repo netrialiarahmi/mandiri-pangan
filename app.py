@@ -277,15 +277,28 @@ with tabs[0]:
                 st.warning('Tidak ada data untuk Perikanan.')
 
             # 8. Analisis Limbah
+# 8. Analisis Limbah
             st.subheader('8️⃣ Analisis Limbah')
             limbah_cols = ['Sumber Limbah', 'Pengolahan', 'Hasil Daur Ulang']
             available_limbah_cols = [col for col in limbah_cols if col in filtered_data.columns]
             
-            if available_limbah_cols:
-                limbah_data = filtered_data[available_limbah_cols]
+            if set(limbah_cols).issubset(filtered_data.columns):
+                limbah_data = filtered_data[limbah_cols]
                 
-                # Mengisi nilai kosong dengan 'Tidak Ada'
-                limbah_data = limbah_data.fillna('Tidak Ada')
+                # Mengisi nilai kosong dengan string kosong untuk preprocessing
+                limbah_data = limbah_data.fillna('')
+                
+                # Preprocessing untuk 'Sumber Limbah' (Uppercase)
+                limbah_data['Sumber Limbah'] = limbah_data['Sumber Limbah'].str.upper()
+                
+                # Preprocessing untuk 'Pengolahan' (Uppercase dan mengganti 'Tidak ada' menjadi 'Tidak Diolah')
+                limbah_data['Pengolahan'] = limbah_data['Pengolahan'].str.upper()
+                limbah_data['Pengolahan'] = limbah_data['Pengolahan'].replace({'TIDAK ADA': 'TIDAK DIOLAH'})
+                
+                # Preprocessing untuk 'Hasil Daur Ulang' (Uppercase dan mengganti NaN/'DI BUANG'/0 menjadi 'DIBAKAR')
+                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].str.upper()
+                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].replace({'': 'DIBAKAR', 'DI BUANG': 'DIBAKAR', '0': 'DIBAKAR'})
+                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].fillna('DIBAKAR')
                 
                 # Membuat visualisasi untuk 'Sumber Limbah'
                 st.markdown('**Distribusi Sumber Limbah**')
@@ -319,6 +332,7 @@ with tabs[0]:
                 st.dataframe(limbah_data)
             else:
                 st.warning('Tidak ada data untuk Limbah.')
+
 
 
             # 9. Analisis Pendidikan
