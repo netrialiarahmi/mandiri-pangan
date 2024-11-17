@@ -280,11 +280,46 @@ with tabs[0]:
             st.subheader('8️⃣ Analisis Limbah')
             limbah_cols = ['Sumber Limbah', 'Pengolahan', 'Hasil Daur Ulang']
             available_limbah_cols = [col for col in limbah_cols if col in filtered_data.columns]
+            
             if available_limbah_cols:
                 limbah_data = filtered_data[available_limbah_cols]
+                
+                # Mengisi nilai kosong dengan 'Tidak Ada'
+                limbah_data = limbah_data.fillna('Tidak Ada')
+                
+                # Membuat visualisasi untuk 'Sumber Limbah'
+                st.markdown('**Distribusi Sumber Limbah**')
+                sumber_counts = limbah_data['Sumber Limbah'].value_counts().reset_index()
+                sumber_counts.columns = ['Sumber Limbah', 'Jumlah']
+                fig_sumber = px.pie(sumber_counts, names='Sumber Limbah', values='Jumlah', hole=0.5, color_discrete_sequence=px.colors.sequential.RdBu)
+                fig_sumber.update_traces(textposition='inside', textinfo='percent+label')
+                fig_sumber.update_layout(title='Distribusi Sumber Limbah')
+                st.plotly_chart(fig_sumber, use_container_width=True)
+                
+                # Membuat visualisasi untuk 'Pengolahan'
+                st.markdown('**Distribusi Pengolahan Limbah**')
+                pengolahan_counts = limbah_data['Pengolahan'].value_counts().reset_index()
+                pengolahan_counts.columns = ['Pengolahan', 'Jumlah']
+                fig_pengolahan = px.pie(pengolahan_counts, names='Pengolahan', values='Jumlah', hole=0.5, color_discrete_sequence=px.colors.sequential.Viridis)
+                fig_pengolahan.update_traces(textposition='inside', textinfo='percent+label')
+                fig_pengolahan.update_layout(title='Distribusi Pengolahan Limbah')
+                st.plotly_chart(fig_pengolahan, use_container_width=True)
+                
+                # Membuat visualisasi untuk 'Hasil Daur Ulang'
+                st.markdown('**Distribusi Hasil Daur Ulang**')
+                hasil_counts = limbah_data['Hasil Daur Ulang'].value_counts().reset_index()
+                hasil_counts.columns = ['Hasil Daur Ulang', 'Jumlah']
+                fig_hasil = px.pie(hasil_counts, names='Hasil Daur Ulang', values='Jumlah', hole=0.5, color_discrete_sequence=px.colors.sequential.Plasma)
+                fig_hasil.update_traces(textposition='inside', textinfo='percent+label')
+                fig_hasil.update_layout(title='Distribusi Hasil Daur Ulang')
+                st.plotly_chart(fig_hasil, use_container_width=True)
+                
+                # Menampilkan Data Limbah dalam tabel
+                st.markdown('**Detail Data Limbah**')
                 st.dataframe(limbah_data)
             else:
                 st.warning('Tidak ada data untuk Limbah.')
+
 
             # 9. Analisis Pendidikan
             st.subheader('9️⃣ Analisis Pendidikan')
