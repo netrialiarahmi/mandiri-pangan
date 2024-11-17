@@ -166,7 +166,7 @@ with tabs[1]:
                 st.write(data_kemandirian_rumah_tangga)
             
             # Visualisasi
-            if 'Nama Kepala Keluarga' in data_kemandirian_rumah_tangga.columns and 'Rata-rata' in data_kemandirian_rumah_tangga.columns:
+            if 'Data' in data_kemandirian_rumah_tangga.columns and 'Rata-rata' in data_kemandirian_rumah_tangga.columns:
                 st.subheader('🌟 Kemandirian Pangan Per Rumah Tangga')
                 fig = px.bar(data_kemandirian_rumah_tangga, x='Nama Kepala Keluarga', y='Rata-rata', color='Rata-rata', color_continuous_scale='Blues')
                 fig.update_layout(title='Kemandirian Pangan Per Rumah Tangga', xaxis_title='Nama Kepala Keluarga', yaxis_title='Rata-rata Kemandirian Pangan (%)')
