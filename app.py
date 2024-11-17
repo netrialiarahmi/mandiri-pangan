@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import base64
 
 # Konfigurasi Halaman
 st.set_page_config(
@@ -69,9 +68,9 @@ Silakan unggah data Anda pada tab yang sesuai di bawah ini.
 def load_data(file):
     try:
         if file.type == 'text/csv':
-            df = pd.read_csv(file, encoding='utf-8')
+            df = pd.read_csv(file, encoding='utf-8', header=1)  # Header pada baris kedua
         else:
-            df = pd.read_excel(file)
+            df = pd.read_excel(file, header=1)  # Header pada baris kedua
     except Exception as e:
         st.error(f"Error loading data: {e}")
         return None
