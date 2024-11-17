@@ -294,25 +294,61 @@ with tabs[0]:
             else:
                 st.warning('Kolom ternak tidak ditemukan atau urutan kolom tidak sesuai.')
 
-
-
-
             # 7. Analisis Perikanan
             st.subheader('7️⃣ Analisis Perikanan')
-            perikanan_cols = ['Ikan dan Boga Laut Segar', 'Ikan dan Boga Laut Kering', 'Jenis Ikan', 'Jumlah Hasil']
-            available_perikanan_cols = [col for col in perikanan_cols if col in filtered_data.columns]
-            if available_perikanan_cols:
-                for col in ['Ikan dan Boga Laut Segar', 'Ikan dan Boga Laut Kering', 'Jumlah Hasil']:
-                    if col in filtered_data.columns:
-                        filtered_data[col] = pd.to_numeric(filtered_data[col], errors='coerce')
-                total_perikanan = filtered_data[['Ikan dan Boga Laut Segar', 'Ikan dan Boga Laut Kering', 'Jumlah Hasil']].sum()
-                perikanan_df = total_perikanan.reset_index()
-                perikanan_df.columns = ['Komoditas Perikanan', 'Jumlah']
-                fig = px.bar(perikanan_df, x='Komoditas Perikanan', y='Jumlah', color='Jumlah', color_continuous_scale='Teal')
-                fig.update_layout(title='Total Produksi Perikanan', xaxis_title='Komoditas Perikanan', yaxis_title='Jumlah')
-                st.plotly_chart(fig, use_container_width=True)
+            
+            # Definisikan kolom untuk Produksi dan Konsumsi Perikanan
+            produksi_perikanan_cols = ['Ikan dan Boga Laut Segar', 'Ikan dan Boga Laut Kering', 'Jumlah Hasil']
+            konsumsi_perikanan_cols = ['Ikan dan Boga Laut Segar.1', 'Ikan dan Boga Laut Kering.1']
+            
+            # Analisis Produksi Perikanan
+            available_produksi_cols = [col for col in produksi_perikanan_cols if col in filtered_data.columns]
+            if len(available_produksi_cols) > 0:
+                # Proses data produksi
+                produksi_data = filtered_data[available_produksi_cols].copy()
+                for col in available_produksi_cols:
+                    produksi_data[col] = pd.to_numeric(produksi_data[col], errors='coerce').fillna(0)
+                total_produksi = produksi_data.sum()
+                produksi_df = total_produksi.reset_index()
+                produksi_df.columns = ['Komoditas Perikanan', 'Jumlah']
+                # Visualisasi
+                fig_produksi = px.bar(
+                    produksi_df,
+                    x='Komoditas Perikanan',
+                    y='Jumlah',
+                    color='Jumlah',
+                    color_continuous_scale='Teal',
+                    title='Total Produksi Perikanan'
+                )
+                fig_produksi.update_layout(xaxis_title='Komoditas Perikanan', yaxis_title='Jumlah')
+                st.plotly_chart(fig_produksi, use_container_width=True)
             else:
-                st.warning('Tidak ada data untuk Perikanan.')
+                st.warning('Tidak ada data untuk Produksi Perikanan.')
+            
+            # Analisis Konsumsi Perikanan
+            available_konsumsi_cols = [col for col in konsumsi_perikanan_cols if col in filtered_data.columns]
+            if len(available_konsumsi_cols) > 0:
+                # Proses data konsumsi
+                konsumsi_data = filtered_data[available_konsumsi_cols].copy()
+                for col in available_konsumsi_cols:
+                    konsumsi_data[col] = pd.to_numeric(konsumsi_data[col], errors='coerce').fillna(0)
+                total_konsumsi = konsumsi_data.sum()
+                konsumsi_df = total_konsumsi.reset_index()
+                konsumsi_df.columns = ['Komoditas Perikanan', 'Jumlah']
+                # Visualisasi
+                fig_konsumsi = px.bar(
+                    konsumsi_df,
+                    x='Komoditas Perikanan',
+                    y='Jumlah',
+                    color='Jumlah',
+                    color_continuous_scale='Blues',
+                    title='Total Konsumsi Perikanan'
+                )
+                fig_konsumsi.update_layout(xaxis_title='Komoditas Perikanan', yaxis_title='Jumlah')
+                st.plotly_chart(fig_konsumsi, use_container_width=True)
+            else:
+                st.warning('Tidak ada data untuk Konsumsi Perikanan.')
+            
 
             # 8. Analisis Limbah
             st.subheader('8️⃣ Analisis Limbah')
