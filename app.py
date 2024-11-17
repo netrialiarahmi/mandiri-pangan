@@ -279,70 +279,81 @@ with tabs[0]:
             # 8. Analisis Limbah
             st.subheader('8️⃣ Analisis Limbah')
             limbah_cols = ['Sumber Limbah', 'Pengolahan', 'Hasil Daur Ulang']
-            available_limbah_cols = [col for col in limbah_cols if col in filtered_data.columns]
             
             if set(limbah_cols).issubset(filtered_data.columns):
-                limbah_data = filtered_data[limbah_cols]
+                limbah_data = filtered_data[limbah_cols].copy()
                 
-                # Mengisi nilai kosong dengan string kosong untuk preprocessing
-                limbah_data = limbah_data.fillna('')
-                
-                # Preprocessing untuk 'Sumber Limbah' (Capitalize each word)
-                limbah_data['Sumber Limbah'] = limbah_data['Sumber Limbah'].astype(str).str.title()
-                
-                # Preprocessing untuk 'Pengolahan' (Capitalize each word dan mengganti 'Tidak ada' menjadi 'Tidak Diolah')
-                limbah_data['Pengolahan'] = limbah_data['Pengolahan'].astype(str).str.title()
-                limbah_data['Pengolahan'] = limbah_data['Pengolahan'].replace({'Tidak Ada': 'Tidak Diolah'})
-                
-                # Preprocessing untuk 'Hasil Daur Ulang' (Capitalize each word dan mengganti NaN/'Di buang'/0 menjadi 'Dibakar')
-                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].astype(str).str.title()
-                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].replace({'': 'Dibakar', 'Di Buang': 'Dibakar', '0': 'Dibakar', 'Nan': 'Dibakar'})
-                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].fillna('Dibakar')
-                
-                # Mengganti nilai numerik yang tidak seharusnya ada
-                def replace_numeric(value, default):
+                # Preprocessing Data Limbah
+                limbah_data = limbah_data.fillna('')  # Isi nilai kosong dengan string kosong
+                limbah_data['Sumber Limbah'] = limbah_data['Sumber Limbah'].str.capitalize()
+                limbah_data['Pengolahan'] = limbah_data['Pengolahan'].str.capitalize().replace({'Tidak ada': 'Tidak diolah'})
+                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].str.capitalize().replace(
+                    {'': 'Dibakar', 'Di buang': 'Dibakar', '0': 'Dibakar', 'Nan': 'Dibakar'}
+                )
+            
+                # Pastikan tidak ada nilai numerik atau anonim
+                def clean_numeric_values(value, default):
                     try:
-                        float(value)
+                        float(value)  # Jika nilai numerik, ganti dengan default
                         return default
                     except ValueError:
                         return value
             
-                limbah_data['Sumber Limbah'] = limbah_data['Sumber Limbah'].apply(lambda x: replace_numeric(x, 'Tidak Diketahui'))
-                limbah_data['Pengolahan'] = limbah_data['Pengolahan'].apply(lambda x: replace_numeric(x, 'Tidak Diketahui'))
-                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].apply(lambda x: replace_numeric(x, 'Dibakar'))
-                
-                # Membuat visualisasi untuk 'Sumber Limbah'
+                limbah_data['Sumber Limbah'] = limbah_data['Sumber Limbah'].apply(lambda x: clean_numeric_values(x, 'Tidak diketahui'))
+                limbah_data['Pengolahan'] = limbah_data['Pengolahan'].apply(lambda x: clean_numeric_values(x, 'Tidak diolah'))
+                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].apply(lambda x: clean_numeric_values(x, 'Dibakar'))
+            
+                # Visualisasi Sumber Limbah
                 st.markdown('**Distribusi Sumber Limbah**')
                 sumber_counts = limbah_data['Sumber Limbah'].value_counts().reset_index()
                 sumber_counts.columns = ['Sumber Limbah', 'Jumlah']
-                fig_sumber = px.pie(sumber_counts, names='Sumber Limbah', values='Jumlah', hole=0.5, color_discrete_sequence=px.colors.sequential.RdBu)
+                fig_sumber = px.pie(
+                    sumber_counts, 
+                    names='Sumber Limbah', 
+                    values='Jumlah', 
+                    hole=0.5, 
+                    color_discrete_sequence=px.colors.sequential.RdBu
+                )
                 fig_sumber.update_traces(textposition='inside', textinfo='percent+label')
                 fig_sumber.update_layout(title='Distribusi Sumber Limbah')
                 st.plotly_chart(fig_sumber, use_container_width=True)
-                
-                # Membuat visualisasi untuk 'Pengolahan'
+            
+                # Visualisasi Pengolahan Limbah
                 st.markdown('**Distribusi Pengolahan Limbah**')
                 pengolahan_counts = limbah_data['Pengolahan'].value_counts().reset_index()
                 pengolahan_counts.columns = ['Pengolahan', 'Jumlah']
-                fig_pengolahan = px.pie(pengolahan_counts, names='Pengolahan', values='Jumlah', hole=0.5, color_discrete_sequence=px.colors.sequential.Viridis)
+                fig_pengolahan = px.pie(
+                    pengolahan_counts, 
+                    names='Pengolahan', 
+                    values='Jumlah', 
+                    hole=0.5, 
+                    color_discrete_sequence=px.colors.sequential.Viridis
+                )
                 fig_pengolahan.update_traces(textposition='inside', textinfo='percent+label')
                 fig_pengolahan.update_layout(title='Distribusi Pengolahan Limbah')
                 st.plotly_chart(fig_pengolahan, use_container_width=True)
-                
-                # Membuat visualisasi untuk 'Hasil Daur Ulang'
+            
+                # Visualisasi Hasil Daur Ulang
                 st.markdown('**Distribusi Hasil Daur Ulang**')
                 hasil_counts = limbah_data['Hasil Daur Ulang'].value_counts().reset_index()
                 hasil_counts.columns = ['Hasil Daur Ulang', 'Jumlah']
-                fig_hasil = px.pie(hasil_counts, names='Hasil Daur Ulang', values='Jumlah', hole=0.5, color_discrete_sequence=px.colors.sequential.Plasma)
+                fig_hasil = px.pie(
+                    hasil_counts, 
+                    names='Hasil Daur Ulang', 
+                    values='Jumlah', 
+                    hole=0.5, 
+                    color_discrete_sequence=px.colors.sequential.Plasma
+                )
                 fig_hasil.update_traces(textposition='inside', textinfo='percent+label')
                 fig_hasil.update_layout(title='Distribusi Hasil Daur Ulang')
                 st.plotly_chart(fig_hasil, use_container_width=True)
-                
+            
                 # Menampilkan Data Limbah dalam tabel
                 st.markdown('**Detail Data Limbah**')
                 st.dataframe(limbah_data)
             else:
                 st.warning('Tidak ada data untuk Limbah.')
+
 
             # 9. Analisis Pendidikan
             st.subheader('9️⃣ Analisis Pendidikan')
