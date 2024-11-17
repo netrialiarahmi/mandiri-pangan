@@ -68,9 +68,9 @@ Silakan unggah data Anda pada tab yang sesuai di bawah ini.
 def load_data(file):
     try:
         if file.type == 'text/csv':
-            df = pd.read_csv(file, encoding='utf-8', header=1)  # Header pada baris kedua
+            df = pd.read_csv(file, encoding='utf-8', header=0)  # Header pada baris pertama
         else:
-            df = pd.read_excel(file, header=1)  # Header pada baris kedua
+            df = pd.read_excel(file, header=0)  # Header pada baris pertama
     except Exception as e:
         st.error(f"Error loading data: {e}")
         return None
@@ -89,6 +89,7 @@ def extract_lat_lon(coord):
 
 # Membuat Tab
 tabs = st.tabs(['🏠 Data Rumah Tangga', '🍛 Kemandirian Pangan Rumah Tangga', '🌾 Kemandirian Pangan Dusun'])
+
 with tabs[0]:
     st.header('🏠 Data Rumah Tangga')
     # Upload dan tampilkan data_rumah_tangga
@@ -100,20 +101,38 @@ with tabs[0]:
                 st.write(data_rumah_tangga)
             
             # Opsi Filter
-            if 'Dusun' in data_rumah_tangga.columns:
-                st.subheader('📍 Filter Berdasarkan Dusun')
-                dusun_list = data_rumah_tangga['Dusun'].dropna().unique()
-                selected_dusun = st.selectbox('Pilih Dusun', options=dusun_list, index=0)
-                filtered_data = data_rumah_tangga[data_rumah_tangga['Dusun'] == selected_dusun]
-                st.markdown(f'### Data Rumah Tangga untuk Dusun **{selected_dusun}**')
-                st.dataframe(filtered_data)
+            st.subheader('📍 Filter Data')
+            filter_option = st.selectbox('Pilih Opsi Filter', ['Semua Data', 'Dusun', 'Desa/Kelurahan', 'Kecamatan'])
+            if filter_option == 'Dusun':
+                if 'Dusun' in data_rumah_tangga.columns:
+                    dusun_list = data_rumah_tangga['Dusun'].dropna().unique()
+                    selected_dusun = st.multiselect('Pilih Dusun', options=dusun_list, default=dusun_list)
+                    filtered_data = data_rumah_tangga[data_rumah_tangga['Dusun'].isin(selected_dusun)]
+                else:
+                    st.warning('Kolom "Dusun" tidak ditemukan dalam data.')
+                    filtered_data = data_rumah_tangga
+            elif filter_option == 'Desa/Kelurahan':
+                if 'Desa/Kelurahan' in data_rumah_tangga.columns:
+                    desa_list = data_rumah_tangga['Desa/Kelurahan'].dropna().unique()
+                    selected_desa = st.multiselect('Pilih Desa/Kelurahan', options=desa_list, default=desa_list)
+                    filtered_data = data_rumah_tangga[data_rumah_tangga['Desa/Kelurahan'].isin(selected_desa)]
+                else:
+                    st.warning('Kolom "Desa/Kelurahan" tidak ditemukan dalam data.')
+                    filtered_data = data_rumah_tangga
+            elif filter_option == 'Kecamatan':
+                if 'Kecamatan' in data_rumah_tangga.columns:
+                    kecamatan_list = data_rumah_tangga['Kecamatan'].dropna().unique()
+                    selected_kecamatan = st.multiselect('Pilih Kecamatan', options=kecamatan_list, default=kecamatan_list)
+                    filtered_data = data_rumah_tangga[data_rumah_tangga['Kecamatan'].isin(selected_kecamatan)]
+                else:
+                    st.warning('Kolom "Kecamatan" tidak ditemukan dalam data.')
+                    filtered_data = data_rumah_tangga
             else:
                 filtered_data = data_rumah_tangga
-            
-            # Visualisasi
-            st.subheader('📈 Visualisasi Data Rumah Tangga')
+
+            # 1. Visualisasi Data Rumah Tangga
+            st.subheader('1️⃣ Visualisasi Data Rumah Tangga')
             col1, col2 = st.columns(2)
-            
             with col1:
                 if 'Pendapatan Bulanan (Rp.)' in filtered_data.columns:
                     st.markdown('**Distribusi Pendapatan Bulanan**')
@@ -122,7 +141,6 @@ with tabs[0]:
                     fig = px.histogram(filtered_data, x='Pendapatan Bulanan (Rp.)', nbins=20, color_discrete_sequence=['#1ABC9C'])
                     fig.update_layout(title='Distribusi Pendapatan Bulanan', xaxis_title='Pendapatan Bulanan (Rp.)', yaxis_title='Jumlah Rumah Tangga')
                     st.plotly_chart(fig, use_container_width=True)
-            
             with col2:
                 if 'Jumlah Anggota Keluarga (jiwa)' in filtered_data.columns:
                     st.markdown('**Distribusi Jumlah Anggota Keluarga**')
@@ -131,10 +149,10 @@ with tabs[0]:
                     fig.update_traces(textposition='inside', textinfo='percent+label')
                     fig.update_layout(title='Persentase Jumlah Anggota Keluarga')
                     st.plotly_chart(fig, use_container_width=True)
-            
-            # Menampilkan Peta
+
+            # 2. Peta Sebaran Rumah Tangga
+            st.subheader('2️⃣ Peta Sebaran Rumah Tangga')
             if 'Koordinat GPS' in filtered_data.columns:
-                st.subheader('🗺️ Peta Sebaran Rumah Tangga')
                 # Memisahkan latitude dan longitude
                 coords = filtered_data['Koordinat GPS'].apply(extract_lat_lon)
                 filtered_data = filtered_data.join(coords)
@@ -152,122 +170,141 @@ with tabs[0]:
                 )
                 fig.update_layout(title='Peta Sebaran Rumah Tangga')
                 st.plotly_chart(fig, use_container_width=True)
-            
-            # Visualisasi Tambahan: Produksi dan Konsumsi Pangan
-            st.subheader('🍚 Analisis Produksi dan Konsumsi Pangan')
-            
-            # Konversi kolom produksi dan konsumsi menjadi numerik
-            produksi_karbohidrat_cols = ['Beras Lokal (Sawah/Ladang dalam Kg)', 'Singkong', 'Jagung Lokal', 'Jagung Hibrida', 'Umbi-umbian lain', 'Sorgum', 'Jewawut/Weteng']
-            produksi_protein_cols = ['Ikan dan Boga Laut Segar', 'Ikan dan Boga Laut Kering', 'Telor', 'Ayam', 'Daging (Sapi/Kerbau/Kambing/Babi,dll)', 'Kacang-kacangan']
-            konsumsi_protein_cols = ['Ikan dan Boga Laut Segar.1', 'Ikan dan Boga Laut Kering.1', 'Telor.1', 'Ayam.1', 'Kacang-kacangan.1']
-            konsumsi_sayur_buah_cols = ['Daun Ubi', 'Kangkung', 'Kubis', 'Sawi', 'Bayam', 'Brokoli', 'Wortel', 'Jantung Pisang', 'Kelor', 'Bunga dan Daun Pepaya', 'Pakis/Paku', 'Rebung', 'Mangga', 'Alpukat', 'Jeruk', 'Anggur', 'Buah Naga', 'Mete', 'Pisang', 'Rambutan', 'Nanas', 'Salak', 'Pepaya', 'Kelapa', 'Tomat', 'Timun', 'Labu', 'Kemangi']
-            
-            # Pastikan kolom-kolom tersebut ada dalam data
-            available_produksi_karbo_cols = [col for col in produksi_karbohidrat_cols if col in filtered_data.columns]
-            available_produksi_protein_cols = [col for col in produksi_protein_cols if col in filtered_data.columns]
-            available_konsumsi_protein_cols = [col for col in konsumsi_protein_cols if col in filtered_data.columns]
-            available_konsumsi_sayur_buah_cols = [col for col in konsumsi_sayur_buah_cols if col in filtered_data.columns]
-            
-            # Mengonversi data produksi dan konsumsi menjadi numerik
-            for col in available_produksi_karbo_cols + available_produksi_protein_cols + available_konsumsi_protein_cols + available_konsumsi_sayur_buah_cols:
-                filtered_data[col] = pd.to_numeric(filtered_data[col], errors='coerce')
-            
-            # Analisis Produksi Protein per Rumah Tangga
-            filtered_data['Total Produksi Protein (Kg)'] = filtered_data[available_produksi_protein_cols].sum(axis=1)
-            
-            st.markdown('**Produksi Protein per Rumah Tangga**')
-            fig = px.bar(filtered_data, x='Nama Kepala Keluarga', y='Total Produksi Protein (Kg)', color='Total Produksi Protein (Kg)', color_continuous_scale='Sunset')
-            fig.update_layout(title='Produksi Protein per Rumah Tangga', xaxis_title='Nama Kepala Keluarga', yaxis_title='Total Produksi Protein (Kg)')
-            fig.update_xaxes(tickangle=-45)
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Analisis Konsumsi Protein per Rumah Tangga
-            filtered_data['Total Konsumsi Protein (Kg)'] = filtered_data[available_konsumsi_protein_cols].sum(axis=1)
-            
-            st.markdown('**Konsumsi Protein per Rumah Tangga**')
-            fig = px.bar(filtered_data, x='Nama Kepala Keluarga', y='Total Konsumsi Protein (Kg)', color='Total Konsumsi Protein (Kg)', color_continuous_scale='Teal')
-            fig.update_layout(title='Konsumsi Protein per Rumah Tangga', xaxis_title='Nama Kepala Keluarga', yaxis_title='Total Konsumsi Protein (Kg)')
-            fig.update_xaxes(tickangle=-45)
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Analisis Konsumsi Sayur dan Buah per Rumah Tangga
-            filtered_data['Total Konsumsi Sayur dan Buah (Kg)'] = filtered_data[available_konsumsi_sayur_buah_cols].sum(axis=1)
-            
-            st.markdown('**Konsumsi Sayur dan Buah per Rumah Tangga**')
-            fig = px.bar(filtered_data, x='Nama Kepala Keluarga', y='Total Konsumsi Sayur dan Buah (Kg)', color='Total Konsumsi Sayur dan Buah (Kg)', color_continuous_scale='Greens')
-            fig.update_layout(title='Konsumsi Sayur dan Buah per Rumah Tangga', xaxis_title='Nama Kepala Keluarga', yaxis_title='Total Konsumsi Sayur dan Buah (Kg)')
-            fig.update_xaxes(tickangle=-45)
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Korelasi Pendapatan dengan Produksi dan Konsumsi
-            st.subheader('📊 Analisis Korelasi Pendapatan dengan Produksi dan Konsumsi')
-            if 'Pendapatan Bulanan (Rp.)' in filtered_data.columns:
-                # Mengonversi Pendapatan menjadi numerik
-                filtered_data['Pendapatan Bulanan (Rp.)'] = pd.to_numeric(filtered_data['Pendapatan Bulanan (Rp.)'], errors='coerce')
-                
-                # Scatter Plot Pendapatan vs Total Produksi Karbohidrat
-                st.markdown('**Pendapatan vs Total Produksi Karbohidrat**')
-                fig = px.scatter(filtered_data, x='Pendapatan Bulanan (Rp.)', y='Total Produksi Karbohidrat (Kg)', trendline='ols', color_discrete_sequence=['#2E86C1'])
-                fig.update_layout(xaxis_title='Pendapatan Bulanan (Rp.)', yaxis_title='Total Produksi Karbohidrat (Kg)')
+            else:
+                st.warning('Kolom "Koordinat GPS" tidak ditemukan dalam data.')
+
+            # 3. 🍚 Analisis Produksi
+            st.subheader('3️⃣ 🍚 Analisis Produksi')
+            produksi_cols = {
+                'Produksi Karbohidrat': ['Beras Lokal (Sawah/Ladang dalam Kg)', 'Singkong', 'Jagung Lokal', 'Jagung Hibrida', 'Umbi-umbian lain', 'Sorgum', 'Jewawut/Weteng'],
+                'Produksi Pertanian': ['Nama Tanaman', 'Jenis Pangan', 'Varietas', 'Luas Lahan', 'Produktivitas'],
+                'Minyak Masak': ['Minyak Masak', 'Minyak Kelapa'],
+                'Bumbu dan Rempah': ['Cabai Besar', 'Cabai Kecil', 'Kemiri', 'Kunyit', 'Jahe', 'Sereh', 'Lengkuas', 'Jeruk Nipis', 'Mete', 'Lain-lain']
+            }
+            col1, col2 = st.columns(2)
+            with col1:
+                for category, cols in produksi_cols.items():
+                    available_cols = [col for col in cols if col in filtered_data.columns]
+                    if available_cols:
+                        st.markdown(f'**{category}**')
+                        for col in available_cols:
+                            filtered_data[col] = pd.to_numeric(filtered_data[col], errors='coerce')
+                        total_produksi = filtered_data[available_cols].sum()
+                        produksi_df = total_produksi.reset_index()
+                        produksi_df.columns = ['Komoditas', 'Jumlah']
+                        fig = px.bar(produksi_df, x='Komoditas', y='Jumlah', color='Jumlah', color_continuous_scale='Viridis')
+                        fig.update_layout(title=f'Produksi {category}', xaxis_title='Komoditas', yaxis_title='Jumlah')
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.warning(f'Tidak ada data untuk {category}.')
+
+            # 4. Analisis Konsumsi Pangan
+            st.subheader('4️⃣ Analisis Konsumsi Pangan')
+            konsumsi_cols = {
+                'Konsumsi Karbohidrat': ['Beras Lokal (Sawah/Ladang)', 'Singkong.1', 'Jagung Lokal.1', 'Jagung Hibrida.1', 'Umbi-umbian lain.1', 'Sorgum.1', 'Jewawut/Weteng.1'],
+                'Konsumsi Pertanian': ['Nama Tanaman', 'Jenis Pangan', 'Varietas', 'Luas Lahan', 'Produktivitas'],
+                'Minyak Masak': ['Minyak Masak.1', 'Minyak Kelapa.1'],
+                'Bumbu dan Rempah': ['Cabai Besar.1', 'Cabai Kecil.1', 'Kemiri.1', 'Kunyit.1', 'Jahe.1', 'Sereh.1', 'Lengkuas.1', 'Jeruk Nipis.1', 'Mete.1', 'Lain-lain.1'],
+                'Konsumsi Sayur dan Buah': ['Daun Ubi', 'Kangkung', 'Kubis', 'Sawi', 'Bayam', 'Brokoli', 'Wortel', 'Jantung Pisang', 'Kelor', 'Bunga dan Daun Pepaya', 'Pakis/Paku', 'Rebung', 'Mangga', 'Alpukat', 'Jeruk', 'Anggur', 'Buah Naga', 'Mete', 'Pisang', 'Rambutan', 'Nanas', 'Salak', 'Pepaya', 'Kelapa', 'Tomat', 'Timun', 'Labu', 'Kemangi'],
+                'Makanan dan Minuman Olahan': ['Susu (Bubuk/UHT)', 'Kental Manis', 'Minuman Kemasan', 'Minuman Fermentasi', 'Gula Pasir', 'Kopi', 'Teh', 'Mie Instan', 'Biskuit/Roti/Kue Kemasan'],
+                'Konsumsi Lain-lain': ['Rokok Kemasan', 'Tembakau', 'Pinang', 'Daun Sirih'],
+                'Bahan Bakar': ['Minyak Tanah', 'Gas', 'Biaya Listrik', 'BBM']
+            }
+            with col2:
+                for category, cols in konsumsi_cols.items():
+                    available_cols = [col for col in cols if col in filtered_data.columns]
+                    if available_cols:
+                        st.markdown(f'**{category}**')
+                        for col in available_cols:
+                            filtered_data[col] = pd.to_numeric(filtered_data[col], errors='coerce')
+                        total_konsumsi = filtered_data[available_cols].sum()
+                        konsumsi_df = total_konsumsi.reset_index()
+                        konsumsi_df.columns = ['Komoditas', 'Jumlah']
+                        fig = px.bar(konsumsi_df, x='Komoditas', y='Jumlah', color='Jumlah', color_continuous_scale='Cividis')
+                        fig.update_layout(title=f'Konsumsi {category}', xaxis_title='Komoditas', yaxis_title='Jumlah')
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.warning(f'Tidak ada data untuk {category}.')
+
+            # 5. Analisis Input Pertanian
+            st.subheader('5️⃣ Analisis Input Pertanian')
+            input_pertanian_cols = ['Pupuk', 'Pestisida/Herbisida/Fungisida', 'Benih', 'Upah Buruh', 'Sewa Alat dan Mesin Pertanian']
+            available_input_cols = [col for col in input_pertanian_cols if col in filtered_data.columns]
+            if available_input_cols:
+                for col in available_input_cols:
+                    filtered_data[col] = pd.to_numeric(filtered_data[col], errors='coerce')
+                total_input = filtered_data[available_input_cols].sum()
+                input_df = total_input.reset_index()
+                input_df.columns = ['Input Pertanian', 'Jumlah']
+                fig = px.pie(input_df, names='Input Pertanian', values='Jumlah', color_discrete_sequence=px.colors.sequential.Blues)
+                fig.update_layout(title='Proporsi Penggunaan Input Pertanian')
                 st.plotly_chart(fig, use_container_width=True)
-                
-                # Scatter Plot Pendapatan vs Total Konsumsi Karbohidrat
-                st.markdown('**Pendapatan vs Total Konsumsi Karbohidrat**')
-                fig = px.scatter(filtered_data, x='Pendapatan Bulanan (Rp.)', y='Total Konsumsi Karbohidrat (Kg)', trendline='ols', color_discrete_sequence=['#D35400'])
-                fig.update_layout(xaxis_title='Pendapatan Bulanan (Rp.)', yaxis_title='Total Konsumsi Karbohidrat (Kg)')
-                st.plotly_chart(fig, use_container_width=True)
-            
-            # Visualisasi Kepemilikan Ternak
-            st.subheader('🐄 Kepemilikan Ternak per Rumah Tangga')
+            else:
+                st.warning('Tidak ada data untuk Input Pertanian.')
+
+            # 6. Analisis Peternakan
+            st.subheader('6️⃣ Analisis Peternakan')
             ternak_cols = ['Sapi', 'Kerbau', 'Kambing', 'Ayam', 'Bebek', 'Babi', 'Kuda']
             available_ternak_cols = [col for col in ternak_cols if col in filtered_data.columns]
-            for col in available_ternak_cols:
-                filtered_data[col] = pd.to_numeric(filtered_data[col], errors='coerce')
-            filtered_data['Total Ternak'] = filtered_data[available_ternak_cols].sum(axis=1)
-            
-            fig = px.bar(filtered_data, x='Nama Kepala Keluarga', y='Total Ternak', color='Total Ternak', color_continuous_scale='OrRd')
-            fig.update_layout(title='Total Ternak per Rumah Tangga', xaxis_title='Nama Kepala Keluarga', yaxis_title='Jumlah Ternak')
-            fig.update_xaxes(tickangle=-45)
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Top 5 Rumah Tangga dengan Kepemilikan Ternak Tertinggi
-            top5_ternak = filtered_data.nlargest(5, 'Total Ternak')[['Nama Kepala Keluarga', 'Total Ternak']]
-            st.markdown('**🏆 Top 5 Rumah Tangga dengan Kepemilikan Ternak Tertinggi**')
-            st.table(top5_ternak)
-            
-            # Konsumsi per Kapita
-            st.subheader('👨‍👩‍👧‍👦 Konsumsi per Kapita Karbohidrat')
-            filtered_data['Konsumsi Karbohidrat per Kapita (Kg)'] = filtered_data['Total Konsumsi Karbohidrat (Kg)'] / filtered_data['Jumlah Anggota Keluarga (jiwa)']
-            fig = px.bar(filtered_data, x='Nama Kepala Keluarga', y='Konsumsi Karbohidrat per Kapita (Kg)', color='Konsumsi Karbohidrat per Kapita (Kg)', color_continuous_scale='Purples')
-            fig.update_layout(title='Konsumsi Karbohidrat per Kapita', xaxis_title='Nama Kepala Keluarga', yaxis_title='Konsumsi per Kapita (Kg)')
-            fig.update_xaxes(tickangle=-45)
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Konsumsi per Kapita Protein
-            st.subheader('👨‍👩‍👧‍👦 Konsumsi per Kapita Protein')
-            filtered_data['Konsumsi Protein per Kapita (Kg)'] = filtered_data['Total Konsumsi Protein (Kg)'] / filtered_data['Jumlah Anggota Keluarga (jiwa)']
-            fig = px.bar(filtered_data, x='Nama Kepala Keluarga', y='Konsumsi Protein per Kapita (Kg)', color='Konsumsi Protein per Kapita (Kg)', color_continuous_scale='Blues')
-            fig.update_layout(title='Konsumsi Protein per Kapita', xaxis_title='Nama Kepala Keluarga', yaxis_title='Konsumsi per Kapita (Kg)')
-            fig.update_xaxes(tickangle=-45)
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Ringkasan Dashboard
-            st.subheader('📊 Ringkasan')
-            total_rumah_tangga = filtered_data['Nama Kepala Keluarga'].nunique()
-            total_penduduk = filtered_data['Jumlah Anggota Keluarga (jiwa)'].sum()
-            total_produksi_karbohidrat = filtered_data['Total Produksi Karbohidrat (Kg)'].sum()
-            total_konsumsi_karbohidrat = filtered_data['Total Konsumsi Karbohidrat (Kg)'].sum()
-            
-            col1, col2, col3, col4 = st.columns(4)
-            col1.metric("Total Rumah Tangga", total_rumah_tangga)
-            col2.metric("Total Penduduk", int(total_penduduk))
-            col3.metric("Total Produksi Karbohidrat (Kg)", int(total_produksi_karbohidrat))
-            col4.metric("Total Konsumsi Karbohidrat (Kg)", int(total_konsumsi_karbohidrat))
-            
+            if available_ternak_cols:
+                for col in available_ternak_cols:
+                    filtered_data[col] = pd.to_numeric(filtered_data[col], errors='coerce')
+                total_ternak = filtered_data[available_ternak_cols].sum()
+                ternak_df = total_ternak.reset_index()
+                ternak_df.columns = ['Jenis Ternak', 'Jumlah']
+                fig = px.bar(ternak_df, x='Jenis Ternak', y='Jumlah', color='Jumlah', color_continuous_scale='OrRd')
+                fig.update_layout(title='Total Kepemilikan Ternak', xaxis_title='Jenis Ternak', yaxis_title='Jumlah')
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning('Tidak ada data untuk Peternakan.')
+
+            # 7. Analisis Perikanan
+            st.subheader('7️⃣ Analisis Perikanan')
+            perikanan_cols = ['Ikan dan Boga Laut Segar', 'Ikan dan Boga Laut Kering', 'Jenis Ikan', 'Jumlah Hasil']
+            available_perikanan_cols = [col for col in perikanan_cols if col in filtered_data.columns]
+            if available_perikanan_cols:
+                for col in ['Ikan dan Boga Laut Segar', 'Ikan dan Boga Laut Kering', 'Jumlah Hasil']:
+                    if col in filtered_data.columns:
+                        filtered_data[col] = pd.to_numeric(filtered_data[col], errors='coerce')
+                total_perikanan = filtered_data[['Ikan dan Boga Laut Segar', 'Ikan dan Boga Laut Kering', 'Jumlah Hasil']].sum()
+                perikanan_df = total_perikanan.reset_index()
+                perikanan_df.columns = ['Komoditas Perikanan', 'Jumlah']
+                fig = px.bar(perikanan_df, x='Komoditas Perikanan', y='Jumlah', color='Jumlah', color_continuous_scale='Teal')
+                fig.update_layout(title='Total Produksi Perikanan', xaxis_title='Komoditas Perikanan', yaxis_title='Jumlah')
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning('Tidak ada data untuk Perikanan.')
+
+            # 8. Analisis Limbah
+            st.subheader('8️⃣ Analisis Limbah')
+            limbah_cols = ['Sumber Limbah', 'Pengolahan', 'Hasil Daur Ulang']
+            available_limbah_cols = [col for col in limbah_cols if col in filtered_data.columns]
+            if available_limbah_cols:
+                limbah_data = filtered_data[available_limbah_cols]
+                st.dataframe(limbah_data)
+            else:
+                st.warning('Tidak ada data untuk Limbah.')
+
+            # 9. Analisis Pendidikan
+            st.subheader('9️⃣ Analisis Pendidikan')
+            pendidikan_cols = ['SPP (Iuran Sekolah)', 'Peralatan Sekolah/ATK', 'Transportasi/Kos/Jajan']
+            available_pendidikan_cols = [col for col in pendidikan_cols if col in filtered_data.columns]
+            if available_pendidikan_cols:
+                for col in available_pendidikan_cols:
+                    filtered_data[col] = pd.to_numeric(filtered_data[col], errors='coerce')
+                total_pendidikan = filtered_data[available_pendidikan_cols].sum()
+                pendidikan_df = total_pendidikan.reset_index()
+                pendidikan_df.columns = ['Pengeluaran Pendidikan', 'Jumlah']
+                fig = px.bar(pendidikan_df, x='Pengeluaran Pendidikan', y='Jumlah', color='Jumlah', color_continuous_scale='Purples')
+                fig.update_layout(title='Total Pengeluaran Pendidikan', xaxis_title='Jenis Pengeluaran', yaxis_title='Jumlah')
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning('Tidak ada data untuk Pendidikan.')
         else:
             st.error('Gagal memuat data. Pastikan format file benar dan sesuai.')
     else:
         st.info('Silakan upload file **Data Rumah Tangga** pada tab ini.')
+
 with tabs[1]:
     st.header('🍛 Data Kemandirian Pangan Per Rumah Tangga')
     data_kemandirian_rumah_tangga_file = st.file_uploader('Upload Data Kemandirian Pangan Per Rumah Tangga (CSV atau Excel)', type=['csv', 'xlsx'], key='data_kemandirian_rumah_tangga')
