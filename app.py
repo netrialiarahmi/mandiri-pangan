@@ -58,7 +58,8 @@ st.markdown(
 # Judul dan Deskripsi
 st.title('📊 Dashboard Data Pangan')
 st.markdown('''
-Selamat datang di **Dashboard Data Pangan**! Dashboard ini menampilkan visualisasi interaktif dari **data rumah tangga**, **data kemandirian pangan per rumah tangga**, dan **data kemandirian pangan per dusun**.
+Selamat datang di **Dashboard Data Pangan**!
+Dashboard ini menampilkan visualisasi interaktif dari **data rumah tangga**, **data kemandirian pangan per rumah tangga**, dan **data kemandirian pangan per dusun**.
 
 Silakan unggah data Anda pada tab yang sesuai di bawah ini.
 ''')
