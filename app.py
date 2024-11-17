@@ -444,7 +444,7 @@ st.markdown(
     """
     <hr>
     <div style='text-align: center;'>
-        <small>© 2023 Dashboard Data Pangan. All rights reserved.</small>
+        <small>© 2024 Dashboard Data Pangan. All rights reserved.</small>
     </div>
     """,
     unsafe_allow_html=True
