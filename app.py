@@ -166,9 +166,10 @@ with tabs[1]:
                 st.write(data_kemandirian_rumah_tangga)
             
             # Visualisasi
+            # Menggunakan kolom 'Data' sebagai pengganti 'Nama Kepala Keluarga'
             if 'Data' in data_kemandirian_rumah_tangga.columns and 'Rata-rata' in data_kemandirian_rumah_tangga.columns:
                 st.subheader('🌟 Kemandirian Pangan Per Rumah Tangga')
-                fig = px.bar(data_kemandirian_rumah_tangga, x='Nama Kepala Keluarga', y='Rata-rata', color='Rata-rata', color_continuous_scale='Blues')
+                fig = px.bar(data_kemandirian_rumah_tangga, x='Data', y='Rata-rata', color='Rata-rata', color_continuous_scale='Blues')
                 fig.update_layout(title='Kemandirian Pangan Per Rumah Tangga', xaxis_title='Nama Kepala Keluarga', yaxis_title='Rata-rata Kemandirian Pangan (%)')
                 fig.update_xaxes(tickangle=-45)
                 st.plotly_chart(fig, use_container_width=True)
@@ -176,9 +177,9 @@ with tabs[1]:
                 # Top 5 Keluarga dengan Kemandirian Tertinggi
                 top5 = data_kemandirian_rumah_tangga.nlargest(5, 'Rata-rata')
                 st.markdown('**🏆 Top 5 Keluarga dengan Kemandirian Pangan Tertinggi**')
-                st.table(top5[['Nama Kepala Keluarga', 'Rata-rata']])
+                st.table(top5[['Data', 'Rata-rata']])
             else:
-                st.warning('Kolom "Nama Kepala Keluarga" atau "Rata-rata" tidak ditemukan dalam data.')
+                st.warning('Kolom "Data" atau "Rata-rata" tidak ditemukan dalam data.')
         else:
             st.error('Gagal memuat data. Pastikan format file benar dan sesuai.')
     else:
