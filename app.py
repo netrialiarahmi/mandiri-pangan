@@ -277,7 +277,6 @@ with tabs[0]:
                 st.warning('Tidak ada data untuk Perikanan.')
 
             # 8. Analisis Limbah
-# 8. Analisis Limbah
             st.subheader('8️⃣ Analisis Limbah')
             limbah_cols = ['Sumber Limbah', 'Pengolahan', 'Hasil Daur Ulang']
             available_limbah_cols = [col for col in limbah_cols if col in filtered_data.columns]
@@ -288,17 +287,29 @@ with tabs[0]:
                 # Mengisi nilai kosong dengan string kosong untuk preprocessing
                 limbah_data = limbah_data.fillna('')
                 
-                # Preprocessing untuk 'Sumber Limbah' (Uppercase)
-                limbah_data['Sumber Limbah'] = limbah_data['Sumber Limbah'].str.upper()
+                # Preprocessing untuk 'Sumber Limbah' (Capitalize each word)
+                limbah_data['Sumber Limbah'] = limbah_data['Sumber Limbah'].astype(str).str.title()
                 
-                # Preprocessing untuk 'Pengolahan' (Uppercase dan mengganti 'Tidak ada' menjadi 'Tidak Diolah')
-                limbah_data['Pengolahan'] = limbah_data['Pengolahan'].str.upper()
-                limbah_data['Pengolahan'] = limbah_data['Pengolahan'].replace({'TIDAK ADA': 'TIDAK DIOLAH'})
+                # Preprocessing untuk 'Pengolahan' (Capitalize each word dan mengganti 'Tidak ada' menjadi 'Tidak Diolah')
+                limbah_data['Pengolahan'] = limbah_data['Pengolahan'].astype(str).str.title()
+                limbah_data['Pengolahan'] = limbah_data['Pengolahan'].replace({'Tidak Ada': 'Tidak Diolah'})
                 
-                # Preprocessing untuk 'Hasil Daur Ulang' (Uppercase dan mengganti NaN/'DI BUANG'/0 menjadi 'DIBAKAR')
-                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].str.upper()
-                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].replace({'': 'DIBAKAR', 'DI BUANG': 'DIBAKAR', '0': 'DIBAKAR'})
-                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].fillna('DIBAKAR')
+                # Preprocessing untuk 'Hasil Daur Ulang' (Capitalize each word dan mengganti NaN/'Di buang'/0 menjadi 'Dibakar')
+                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].astype(str).str.title()
+                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].replace({'': 'Dibakar', 'Di Buang': 'Dibakar', '0': 'Dibakar', 'Nan': 'Dibakar'})
+                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].fillna('Dibakar')
+                
+                # Mengganti nilai numerik yang tidak seharusnya ada
+                def replace_numeric(value, default):
+                    try:
+                        float(value)
+                        return default
+                    except ValueError:
+                        return value
+            
+                limbah_data['Sumber Limbah'] = limbah_data['Sumber Limbah'].apply(lambda x: replace_numeric(x, 'Tidak Diketahui'))
+                limbah_data['Pengolahan'] = limbah_data['Pengolahan'].apply(lambda x: replace_numeric(x, 'Tidak Diketahui'))
+                limbah_data['Hasil Daur Ulang'] = limbah_data['Hasil Daur Ulang'].apply(lambda x: replace_numeric(x, 'Dibakar'))
                 
                 # Membuat visualisasi untuk 'Sumber Limbah'
                 st.markdown('**Distribusi Sumber Limbah**')
@@ -332,8 +343,6 @@ with tabs[0]:
                 st.dataframe(limbah_data)
             else:
                 st.warning('Tidak ada data untuk Limbah.')
-
-
 
             # 9. Analisis Pendidikan
             st.subheader('9️⃣ Analisis Pendidikan')
