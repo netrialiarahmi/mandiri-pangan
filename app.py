@@ -245,19 +245,48 @@ with tabs[0]:
 
             # 6. Analisis Peternakan
             st.subheader('6️⃣ Analisis Peternakan')
-            ternak_cols = ['Sapi', 'Kerbau', 'Kambing', 'Ayam', 'Bebek', 'Babi', 'Kuda']
-            available_ternak_cols = [col for col in ternak_cols if col in filtered_data.columns]
-            if available_ternak_cols:
-                for col in available_ternak_cols:
-                    filtered_data[col] = pd.to_numeric(filtered_data[col], errors='coerce')
-                total_ternak = filtered_data[available_ternak_cols].sum()
-                ternak_df = total_ternak.reset_index()
-                ternak_df.columns = ['Jenis Ternak', 'Jumlah']
-                fig = px.bar(ternak_df, x='Jenis Ternak', y='Jumlah', color='Jumlah', color_continuous_scale='OrRd')
-                fig.update_layout(title='Total Kepemilikan Ternak', xaxis_title='Jenis Ternak', yaxis_title='Jumlah')
-                st.plotly_chart(fig, use_container_width=True)
+            
+            # Cari indeks kolom "Jenis Ternak" dan "Kuda" dalam dataset
+            if 'Jenis Ternak' in filtered_data.columns and 'Kuda' in filtered_data.columns:
+                jenis_ternak_index = filtered_data.columns.get_loc('Jenis Ternak')
+                kuda_index = filtered_data.columns.get_loc('Kuda')
+            
+                # Pastikan urutan indeks benar
+                if jenis_ternak_index < kuda_index:
+                    # Ambil kolom dari "Jenis Ternak" hingga "Kuda" secara inklusif
+                    ternak_cols = filtered_data.columns[jenis_ternak_index:kuda_index+1]
+                else:
+                    st.warning('Kolom "Jenis Ternak" harus berada sebelum kolom "Kuda" dalam dataset.')
+                    ternak_cols = []
+            
+                if ternak_cols:
+                    # Filter data yang hanya relevan untuk peternakan
+                    peternakan_data = filtered_data[ternak_cols].copy()
+            
+                    # Bersihkan data menjadi angka
+                    for col in ternak_cols[1:]:  # Lewati kolom "Jenis Ternak"
+                        peternakan_data[col] = pd.to_numeric(peternakan_data[col], errors='coerce').fillna(0)
+            
+                    # Hitung total jumlah ternak berdasarkan jenis
+                    total_peternakan = peternakan_data[ternak_cols[1:]].sum(axis=0)
+                    peternakan_summary = pd.DataFrame({'Jenis Ternak': total_peternakan.index, 'Jumlah': total_peternakan.values})
+            
+                    # Visualisasi data total peternakan
+                    fig_peternakan = px.bar(
+                        peternakan_summary,
+                        x='Jenis Ternak',
+                        y='Jumlah',
+                        color='Jumlah',
+                        color_continuous_scale='OrRd',
+                        title='Total Kepemilikan Ternak Berdasarkan Jenis'
+                    )
+                    fig_peternakan.update_layout(xaxis_title='Jenis Ternak', yaxis_title='Jumlah')
+                    st.plotly_chart(fig_peternakan, use_container_width=True)
+                else:
+                    st.warning('Kolom ternak tidak ditemukan atau urutan kolom tidak sesuai.')
             else:
-                st.warning('Tidak ada data untuk Peternakan.')
+                st.warning('Kolom "Jenis Ternak" atau "Kuda" tidak ditemukan dalam dataset.')
+
 
             # 7. Analisis Perikanan
             st.subheader('7️⃣ Analisis Perikanan')
